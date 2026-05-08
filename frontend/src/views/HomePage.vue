@@ -651,6 +651,7 @@ export default {
 }
 
 /* Модальное окно деталей */
+/* Модальное окно деталей */
 .modal {
   position: fixed;
   top: 0;
@@ -837,14 +838,47 @@ export default {
   color: #fbbf24;
 }
 
+/* Стили для кнопок в модальном окне деталей */
 .details-actions {
   display: flex;
   gap: 1rem;
   margin-top: 1.5rem;
 }
 
-.rent-now-btn {
+.details-actions .rent-now-btn {
   flex: 2;
+  padding: 0.85rem;
+  background: linear-gradient(135deg, #0066cc 0%, #0052a0 100%);
+  color: white;
+  border: none;
+  border-radius: 12px;
+  cursor: pointer;
+  font-size: 1rem;
+  font-weight: 600;
+  transition: all 0.3s;
+}
+
+.details-actions .rent-now-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 5px 15px rgba(0, 102, 204, 0.3);
+}
+
+.details-actions .btn-secondary {
+  flex: 1;
+  padding: 0.85rem;
+  background: #f7fafc;
+  color: #4a5568;
+  border: 2px solid #e2e8f0;
+  border-radius: 12px;
+  cursor: pointer;
+  font-size: 1rem;
+  font-weight: 600;
+  transition: all 0.3s;
+}
+
+.details-actions .btn-secondary:hover {
+  background: #edf2f7;
+  transform: translateY(-2px);
 }
 
 @keyframes slideIn {
@@ -858,6 +892,7 @@ export default {
   }
 }
 
+/* Адаптивность */
 @media (max-width: 768px) {
   .home {
     padding: 1rem;
@@ -887,6 +922,60 @@ export default {
 
   .details-actions {
     flex-direction: column;
+    gap: 0.75rem;
+  }
+
+  .details-actions .rent-now-btn,
+  .details-actions .btn-secondary {
+    width: 100%;
+  }
+
+  .modal-content {
+    width: 95%;
+    padding: 1rem;
+  }
+
+  .details-modal {
+    max-width: 95%;
+  }
+}
+
+@media (max-width: 480px) {
+  .hero h1 {
+    font-size: 1.5rem;
+  }
+
+  .price {
+    font-size: 1.3rem;
+  }
+
+  .console-info h3 {
+    font-size: 1rem;
+  }
+
+  .description {
+    font-size: 0.85rem;
+  }
+
+  .details-info h2 {
+    font-size: 1.3rem;
+  }
+
+  .details-price .price-value {
+    font-size: 1.2rem;
+  }
+
+  .game-tag {
+    font-size: 0.8rem;
+    padding: 0.35rem 0.75rem;
+  }
+
+  .feature {
+    font-size: 0.9rem;
+  }
+
+  .review p {
+    font-size: 0.85rem;
   }
 }
 </style>

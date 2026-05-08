@@ -715,20 +715,98 @@ export default {
     padding: 1rem;
   }
 
+  .checkout-steps {
+    margin-bottom: 1rem;
+  }
+
+  .step-number {
+    width: 35px;
+    height: 35px;
+    font-size: 0.9rem;
+  }
+
+  .step-label {
+    font-size: 0.75rem;
+  }
+
   .consoles-grid {
     grid-template-columns: 1fr;
   }
 
+  .console-select-card {
+    padding: 0.75rem;
+  }
+
+  .console-select-card img {
+    width: 60px;
+    height: 60px;
+  }
+
   .form-actions {
     flex-direction: column;
+    gap: 0.75rem;
+  }
+
+  .btn-back,
+  .btn-next,
+  .btn-submit {
+    width: 100%;
   }
 
   .selected-console-display {
     flex-direction: column;
+    padding: 1rem;
+  }
+
+  .selected-console-display img {
+    width: 120px;
+    height: 120px;
   }
 
   .selected-info {
     text-align: center;
+  }
+
+  .order-summary {
+    padding: 1rem;
+  }
+
+  .summary-item {
+    flex-direction: column;
+    gap: 0.5rem;
+    text-align: center;
+  }
+
+  .delivery-info p {
+    font-size: 0.85rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .checkout-steps {
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+
+  .step {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+
+  .step-number {
+    margin-bottom: 0;
+  }
+
+  .price-details {
+    flex-direction: column;
+    text-align: center;
+    gap: 0.5rem;
+  }
+
+  .form-group input,
+  .form-group textarea {
+    font-size: 0.9rem;
   }
 }
 </style>

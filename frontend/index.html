@@ -2,7 +2,11 @@
 <html lang="ru">
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes"
+    />
+    <meta name="theme-color" content="#0066cc" />
     <title>Аренда игровых консолей | PS5 & Xbox</title>
     <style>
       * {
@@ -17,6 +21,7 @@
           "Helvetica Neue", Arial, sans-serif;
         background: #f8fafc;
         color: #2d3748;
+        -webkit-tap-highlight-color: transparent;
       }
 
       #app {
@@ -24,8 +29,8 @@
       }
 
       ::-webkit-scrollbar {
-        width: 10px;
-        height: 10px;
+        width: 8px;
+        height: 8px;
       }
 
       ::-webkit-scrollbar-track {
@@ -34,11 +39,7 @@
 
       ::-webkit-scrollbar-thumb {
         background: #0066cc;
-        border-radius: 5px;
-      }
-
-      ::-webkit-scrollbar-thumb:hover {
-        background: #0052a0;
+        border-radius: 4px;
       }
 
       @keyframes fadeIn {
@@ -50,10 +51,6 @@
           opacity: 1;
           transform: translateY(0);
         }
-      }
-
-      .fade-enter-active {
-        animation: fadeIn 0.5s ease;
       }
     </style>
   </head>

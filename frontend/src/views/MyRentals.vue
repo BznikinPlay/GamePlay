@@ -5,7 +5,12 @@
       <p>История и статус ваших аренд</p>
     </div>
 
-    <div v-if="rentals.length === 0" class="no-rentals">
+    <div v-if="loading" class="loading-state">
+      <div class="loader"></div>
+      <p>Загрузка ваших аренд...</p>
+    </div>
+
+    <div v-else-if="!rentals || rentals.length === 0" class="no-rentals">
       <div class="empty-state">
         <div class="empty-icon">📦</div>
         <h3>У вас пока нет активных аренд</h3>
@@ -20,20 +25,20 @@
       <div v-for="rental in rentals" :key="rental.id" class="rental-card">
         <div class="rental-image">
           <img
-            :src="rental.console.image_url"
-            :alt="rental.console.model"
+            :src="rental.console?.image_url || '/placeholder.png'"
+            :alt="rental.console?.model || 'Консоль'"
             @error="handleImageError"
             class="console-img"
           />
           <div
             class="console-badge"
-            :class="getConsoleClass(rental.console.type)"
+            :class="getConsoleClass(rental.console?.type)"
           >
-            {{ rental.console.type }}
+            {{ rental.console?.type || "Консоль" }}
           </div>
         </div>
         <div class="rental-details">
-          <h3>{{ rental.console.model }}</h3>
+          <h3>{{ rental.console?.model || "Консоль" }}</h3>
           <div class="rental-info">
             <div class="info-item">
               <span class="info-label">📅 Начало:</span>
@@ -79,16 +84,22 @@ export default {
   name: "MyRentals",
   setup() {
     const rentals = ref([]);
+    const loading = ref(true);
 
     const fetchRentals = async () => {
+      loading.value = true;
       try {
         const response = await axios.get("/api/my-rentals");
-        rentals.value = response.data;
+        // Убеждаемся, что response.data - это массив
+        rentals.value = Array.isArray(response.data) ? response.data : [];
       } catch (error) {
         console.error("Error fetching rentals:", error);
         if (error.response?.status === 401) {
           alert("Пожалуйста, войдите в систему");
         }
+        rentals.value = []; // Устанавливаем пустой массив в случае ошибки
+      } finally {
+        loading.value = false;
       }
     };
 
@@ -107,11 +118,15 @@ export default {
 
     const formatDate = (date) => {
       if (!date) return "Дата не указана";
-      return new Date(date).toLocaleDateString("ru-RU", {
-        day: "numeric",
-        month: "long",
-        year: "numeric",
-      });
+      try {
+        return new Date(date).toLocaleDateString("ru-RU", {
+          day: "numeric",
+          month: "long",
+          year: "numeric",
+        });
+      } catch (e) {
+        return "Дата не указана";
+      }
     };
 
     const getStatusText = (status) => {
@@ -120,7 +135,7 @@ export default {
         returned: "Возвращена",
         cancelled: "Отменена",
       };
-      return statusMap[status] || status;
+      return statusMap[status] || status || "Неизвестно";
     };
 
     const getStatusIcon = (status) => {
@@ -149,6 +164,7 @@ export default {
 
     return {
       rentals,
+      loading,
       returnConsole,
       formatDate,
       getStatusText,
@@ -184,6 +200,30 @@ export default {
 .page-header p {
   color: #718096;
   font-size: 1.1rem;
+}
+
+.loading-state {
+  text-align: center;
+  padding: 4rem;
+}
+
+.loader {
+  border: 3px solid #f3f3f3;
+  border-top: 3px solid #0066cc;
+  border-radius: 50%;
+  width: 50px;
+  height: 50px;
+  animation: spin 1s linear infinite;
+  margin: 0 auto 1rem;
+}
+
+@keyframes spin {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
 }
 
 .no-rentals {
@@ -414,20 +454,34 @@ export default {
     padding: 1rem;
   }
 
+  .page-header h1 {
+    font-size: 1.8rem;
+  }
+
   .rental-card {
     flex-direction: column;
     text-align: center;
+    padding: 1rem;
   }
 
   .rental-image {
     width: 150px;
     height: 150px;
+    margin: 0 auto;
   }
 
   .rental-info {
     flex-direction: column;
     align-items: center;
     gap: 0.5rem;
+  }
+
+  .rental-details h3 {
+    text-align: center;
+  }
+
+  .delivery-info {
+    justify-content: center;
   }
 
   .return-btn {
@@ -437,9 +491,21 @@ export default {
   .status-badge {
     margin: 0.5rem auto;
   }
+}
 
-  .delivery-info {
-    justify-content: center;
+@media (max-width: 480px) {
+  .rental-image {
+    width: 120px;
+    height: 120px;
+  }
+
+  .info-item {
+    flex-direction: column;
+    gap: 0.25rem;
+  }
+
+  .price-value {
+    font-size: 1rem;
   }
 }
 </style>
