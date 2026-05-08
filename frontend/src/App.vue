@@ -3,107 +3,148 @@
     <nav class="navbar">
       <div class="nav-container">
         <div class="logo" @click="goHome">
-          <span class="logo-icon">🎮</span>
+          <img src="/gamepad.png" alt="Gamepad" class="logo-icon" />
           <span class="logo-text">ConsoleRent</span>
         </div>
-        
+
         <!-- Десктопное меню -->
         <div class="nav-links desktop-menu">
           <router-link to="/">Главная</router-link>
           <router-link v-if="isLoggedIn" to="/rentals">Мои аренды</router-link>
-          <button v-if="!isLoggedIn" @click="showAuthModal = true" class="auth-btn">Войти / Регистрация</button>
+          <button
+            v-if="!isLoggedIn"
+            @click="showAuthModal = true"
+            class="auth-btn"
+          >
+            Войти / Регистрация
+          </button>
           <div v-else class="user-menu">
-            <span class="username">{{ currentUser?.username }}</span>
+            <span class="username" @click="goToProfile"
+              >👤 {{ currentUser?.username }}</span
+            >
             <button @click="logout" class="auth-btn logout-btn">Выйти</button>
           </div>
         </div>
-        
+
         <!-- Мобильное меню -->
         <div class="mobile-menu">
           <button class="menu-btn" @click="toggleMobileMenu">☰</button>
         </div>
       </div>
-      
+
       <!-- Мобильное выпадающее меню -->
       <div v-if="mobileMenuOpen" class="mobile-nav">
-        <router-link to="/" @click="mobileMenuOpen = false">Главная</router-link>
-        <router-link v-if="isLoggedIn" to="/rentals" @click="mobileMenuOpen = false">Мои аренды</router-link>
-        <button v-if="!isLoggedIn" @click="showAuthModal = true; mobileMenuOpen = false" class="auth-btn-mobile">Войти / Регистрация</button>
-        <div v-else class="user-menu-mobile">
-          <span class="username">{{ currentUser?.username }}</span>
-          <button @click="logout; mobileMenuOpen = false" class="auth-btn logout-btn">Выйти</button>
+        <router-link to="/" @click="mobileMenuOpen = false"
+          >Главная</router-link
+        >
+        <router-link
+          v-if="isLoggedIn"
+          to="/rentals"
+          @click="mobileMenuOpen = false"
+          >Мои аренды</router-link
+        >
+        <div
+          v-if="isLoggedIn"
+          class="mobile-user-info"
+          @click="
+            goToProfile;
+            mobileMenuOpen = false;
+          "
+        >
+          <span class="mobile-username">👤 {{ currentUser?.username }}</span>
+          <span class="mobile-profile-link">Профиль →</span>
         </div>
+        <button
+          v-if="!isLoggedIn"
+          @click="
+            showAuthModal = true;
+            mobileMenuOpen = false;
+          "
+          class="auth-btn-mobile"
+        >
+          Войти / Регистрация
+        </button>
+        <button
+          v-else
+          @click="
+            logout;
+            mobileMenuOpen = false;
+          "
+          class="logout-btn-mobile"
+        >
+          Выйти
+        </button>
       </div>
     </nav>
-    
+
     <router-view @auth-required="showAuthModal = true" />
-    
+
     <!-- Модальное окно авторизации -->
     <div v-if="showAuthModal" class="modal" @click.self="showAuthModal = false">
       <div class="modal-content auth-modal">
         <button class="modal-close" @click="showAuthModal = false">✕</button>
-        
+
         <div class="auth-tabs">
-          <button 
+          <button
             :class="['tab-btn', { active: authMode === 'login' }]"
             @click="authMode = 'login'"
           >
             Вход
           </button>
-          <button 
+          <button
             :class="['tab-btn', { active: authMode === 'register' }]"
             @click="authMode = 'register'"
           >
             Регистрация
           </button>
         </div>
-        
+
         <!-- Форма входа -->
         <form v-if="authMode === 'login'" @submit.prevent="login">
-          <input 
-            v-model="loginForm.email" 
-            type="email" 
-            placeholder="Email" 
+          <input
+            v-model="loginForm.email"
+            type="email"
+            placeholder="Email"
             required
             class="input"
-          >
-          <input 
-            v-model="loginForm.password" 
-            type="password" 
-            placeholder="Пароль" 
+          />
+          <input
+            v-model="loginForm.password"
+            type="password"
+            placeholder="Пароль"
             required
             class="input"
-          >
+          />
           <button type="submit" class="btn-primary" :disabled="loading">
-            {{ loading ? 'Вход...' : 'Войти' }}
+            {{ loading ? "Вход..." : "Войти" }}
           </button>
         </form>
-        
+
         <!-- Форма регистрации -->
         <form v-if="authMode === 'register'" @submit.prevent="register">
-          <input 
-            v-model="registerForm.username" 
-            type="text" 
-            placeholder="Имя пользователя" 
+          <input
+            v-model="registerForm.username"
+            type="text"
+            placeholder="Имя пользователя"
             required
             class="input"
-          >
-          <input 
-            v-model="registerForm.email" 
-            type="email" 
-            placeholder="Email" 
+          />
+          <input
+            v-model="registerForm.email"
+            type="email"
+            placeholder="Email"
             required
             class="input"
-          >
-          <input 
-            v-model="registerForm.password" 
-            type="password" 
-            placeholder="Пароль (мин. 6 символов)" 
+          />
+          <input
+            v-model="registerForm.password"
+            type="password"
+            placeholder="Пароль (мин. 6 символов)"
             required
             class="input"
-          >
+          />
           <button type="submit" class="btn-primary" :disabled="loading">
-            {{ loading ? 'Регистрация...' : 'Зарегистрироваться' }}
+            {{ loading ? "Регистрация..." : "Зарегистрироваться" }}
           </button>
         </form>
       </div>
@@ -112,133 +153,137 @@
 </template>
 
 <script>
-import { ref, onMounted } from 'vue'
-import { useRouter } from 'vue-router'
-import axios from 'axios'
+import { ref, onMounted } from "vue";
+import { useRouter } from "vue-router";
+import axios from "axios";
 
 export default {
-  name: 'App',
+  name: "App",
   setup() {
-    const router = useRouter()
-    const isLoggedIn = ref(false)
-    const currentUser = ref(null)
-    const showAuthModal = ref(false)
-    const authMode = ref('login')
-    const loading = ref(false)
-    const mobileMenuOpen = ref(false)
-    
+    const router = useRouter();
+    const isLoggedIn = ref(false);
+    const currentUser = ref(null);
+    const showAuthModal = ref(false);
+    const authMode = ref("login");
+    const loading = ref(false);
+    const mobileMenuOpen = ref(false);
+
     const loginForm = ref({
-      email: '',
-      password: ''
-    })
-    
+      email: "",
+      password: "",
+    });
+
     const registerForm = ref({
-      username: '',
-      email: '',
-      password: ''
-    })
-    
+      username: "",
+      email: "",
+      password: "",
+    });
+
     const goHome = () => {
-      router.push('/')
-    }
-    
+      router.push("/");
+    };
+
+    const goToProfile = () => {
+      router.push("/profile");
+    };
+
     const toggleMobileMenu = () => {
-      mobileMenuOpen.value = !mobileMenuOpen.value
-    }
-    
+      mobileMenuOpen.value = !mobileMenuOpen.value;
+    };
+
     // Настройка axios интерсептора
     const setupAxiosInterceptor = () => {
       axios.interceptors.request.use(
-        config => {
-          const token = localStorage.getItem('auth_token')
+        (config) => {
+          const token = localStorage.getItem("auth_token");
           if (token) {
-            config.headers.Authorization = `Bearer ${token}`
+            config.headers.Authorization = `Bearer ${token}`;
           }
-          return config
+          return config;
         },
-        error => Promise.reject(error)
-      )
-      
+        (error) => Promise.reject(error),
+      );
+
       axios.interceptors.response.use(
-        response => response,
-        error => {
+        (response) => response,
+        (error) => {
           if (error.response && error.response.status === 401) {
-            logout()
-            showAuthModal.value = true
+            logout();
+            showAuthModal.value = true;
           }
-          return Promise.reject(error)
-        }
-      )
-    }
-    
+          return Promise.reject(error);
+        },
+      );
+    };
+
     const saveToken = (token) => {
-      localStorage.setItem('auth_token', token)
-    }
-    
+      localStorage.setItem("auth_token", token);
+    };
+
     const loadUser = () => {
-      const token = localStorage.getItem('auth_token')
+      const token = localStorage.getItem("auth_token");
       if (token) {
         try {
-          const payload = JSON.parse(atob(token.split('.')[1]))
+          const payload = JSON.parse(atob(token.split(".")[1]));
           currentUser.value = {
             id: payload.user_id,
             username: payload.username,
-            email: payload.email
-          }
-          isLoggedIn.value = true
+            email: payload.email,
+          };
+          isLoggedIn.value = true;
         } catch (e) {
-          logout()
+          logout();
         }
       }
-    }
-    
+    };
+
     const login = async () => {
-      loading.value = true
+      loading.value = true;
       try {
-        const response = await axios.post('/api/login', loginForm.value)
-        saveToken(response.data.token)
-        currentUser.value = response.data.user
-        isLoggedIn.value = true
-        showAuthModal.value = false
-        loginForm.value = { email: '', password: '' }
-        window.location.reload()
+        const response = await axios.post("/api/login", loginForm.value);
+        saveToken(response.data.token);
+        currentUser.value = response.data.user;
+        isLoggedIn.value = true;
+        showAuthModal.value = false;
+        loginForm.value = { email: "", password: "" };
+        window.location.reload();
       } catch (error) {
-        alert(error.response?.data?.error || 'Ошибка входа')
+        alert(error.response?.data?.error || "Ошибка входа");
       } finally {
-        loading.value = false
+        loading.value = false;
       }
-    }
-    
+    };
+
     const register = async () => {
-      loading.value = true
+      loading.value = true;
       try {
-        const response = await axios.post('/api/register', registerForm.value)
-        saveToken(response.data.token)
-        currentUser.value = response.data.user
-        isLoggedIn.value = true
-        showAuthModal.value = false
-        registerForm.value = { username: '', email: '', password: '' }
-        window.location.reload()
+        const response = await axios.post("/api/register", registerForm.value);
+        saveToken(response.data.token);
+        currentUser.value = response.data.user;
+        isLoggedIn.value = true;
+        showAuthModal.value = false;
+        registerForm.value = { username: "", email: "", password: "" };
+        window.location.reload();
       } catch (error) {
-        alert(error.response?.data?.error || 'Ошибка регистрации')
+        alert(error.response?.data?.error || "Ошибка регистрации");
       } finally {
-        loading.value = false
+        loading.value = false;
       }
-    }
-    
+    };
+
     const logout = () => {
-      localStorage.removeItem('auth_token')
-      delete axios.defaults.headers.common['Authorization']
-      isLoggedIn.value = false
-      currentUser.value = null
-      window.location.reload()
-    }
-    
+      localStorage.removeItem("auth_token");
+      delete axios.defaults.headers.common["Authorization"];
+      isLoggedIn.value = false;
+      currentUser.value = null;
+      window.location.reload();
+    };
+
     onMounted(() => {
-      setupAxiosInterceptor()
-      loadUser()
-    })
-    
+      setupAxiosInterceptor();
+      loadUser();
+    });
+
     return {
       isLoggedIn,
       currentUser,
@@ -252,10 +297,11 @@ export default {
       register,
       logout,
       goHome,
-      toggleMobileMenu
-    }
-  }
-}
+      goToProfile,
+      toggleMobileMenu,
+    };
+  },
+};
 </script>
 
 <style scoped>
@@ -279,14 +325,16 @@ export default {
 .logo {
   display: flex;
   align-items: center;
-  gap: 0.5rem;
+  gap: 0.75rem;
   font-size: 1.5rem;
   font-weight: bold;
   cursor: pointer;
 }
 
 .logo-icon {
-  font-size: 1.8rem;
+  width: 32px;
+  height: 32px;
+  object-fit: contain;
 }
 
 .logo-text {
@@ -338,6 +386,33 @@ export default {
   background: #f7fafc;
 }
 
+.mobile-user-info {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.75rem;
+  background: #f0f7ff;
+  border-radius: 10px;
+  margin: 0.5rem 0;
+  cursor: pointer;
+  transition: all 0.3s;
+}
+
+.mobile-user-info:hover {
+  background: #e8f0fe;
+  transform: translateX(5px);
+}
+
+.mobile-username {
+  font-weight: 600;
+  color: #0066cc;
+}
+
+.mobile-profile-link {
+  color: #0066cc;
+  font-size: 0.9rem;
+}
+
 .nav-links a {
   text-decoration: none;
   color: #4a5568;
@@ -357,7 +432,19 @@ export default {
 
 .username {
   color: #0066cc;
-  font-weight: 500;
+  font-weight: 600;
+  cursor: pointer;
+  padding: 0.5rem 1rem;
+  border-radius: 25px;
+  transition: all 0.3s;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.username:hover {
+  background: #f0f7ff;
+  transform: translateY(-2px);
 }
 
 .auth-btn {
@@ -382,6 +469,7 @@ export default {
 
 .logout-btn:hover {
   background: #c53030;
+  box-shadow: 0 5px 15px rgba(229, 62, 62, 0.3);
 }
 
 .auth-btn-mobile {
@@ -392,6 +480,21 @@ export default {
   border: none;
   border-radius: 10px;
   cursor: pointer;
+}
+
+.logout-btn-mobile {
+  width: 100%;
+  padding: 0.75rem;
+  background: #e53e3e;
+  color: white;
+  border: none;
+  border-radius: 10px;
+  cursor: pointer;
+  margin-top: 0.5rem;
+}
+
+.logout-btn-mobile:hover {
+  background: #c53030;
 }
 
 .modal {
@@ -430,6 +533,11 @@ export default {
   border-radius: 50%;
   cursor: pointer;
   font-size: 1.2rem;
+  transition: all 0.3s;
+}
+
+.modal-close:hover {
+  background: #cbd5e0;
 }
 
 .auth-tabs {
@@ -448,11 +556,22 @@ export default {
   font-weight: 500;
   color: #718096;
   cursor: pointer;
+  transition: all 0.3s;
+  position: relative;
 }
 
 .tab-btn.active {
   color: #0066cc;
-  border-bottom: 2px solid #0066cc;
+}
+
+.tab-btn.active::after {
+  content: "";
+  position: absolute;
+  bottom: -2px;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: #0066cc;
 }
 
 form {
@@ -466,11 +585,13 @@ form {
   border: 2px solid #e2e8f0;
   border-radius: 10px;
   font-size: 1rem;
+  transition: all 0.3s;
 }
 
 .input:focus {
   outline: none;
   border-color: #0066cc;
+  box-shadow: 0 0 0 3px rgba(0, 102, 204, 0.1);
 }
 
 .btn-primary {
@@ -482,6 +603,12 @@ form {
   font-size: 1rem;
   font-weight: 500;
   cursor: pointer;
+  transition: all 0.3s;
+}
+
+.btn-primary:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 5px 15px rgba(0, 102, 204, 0.3);
 }
 
 .btn-primary:disabled {
@@ -505,31 +632,32 @@ form {
   .nav-container {
     padding: 0.75rem 1rem;
   }
-  
+
   .desktop-menu {
     display: none;
   }
-  
+
   .mobile-menu {
     display: block;
   }
-  
+
   .mobile-nav {
     display: flex;
   }
-  
+
   .logo-text {
     font-size: 1.2rem;
   }
-  
+
   .logo-icon {
-    font-size: 1.5rem;
+    width: 28px;
+    height: 28px;
   }
-  
+
   .modal-content {
     padding: 1.5rem;
   }
-  
+
   .tab-btn {
     font-size: 0.9rem;
     padding: 0.5rem;

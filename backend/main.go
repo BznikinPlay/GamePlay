@@ -44,6 +44,11 @@ func main() {
     auth := r.Group("/api")
     auth.Use(middleware.AuthMiddleware())
     {
+        // Профиль
+        auth.GET("/user/profile", handlers.GetUserProfile)
+        auth.PUT("/user/profile", handlers.UpdateUserProfile)
+        
+        // Аренды
         auth.POST("/rentals", handlers.CreateRental)
         auth.GET("/my-rentals", handlers.GetUserRentals)
         auth.PUT("/rentals/:id/return", handlers.ReturnConsole)
