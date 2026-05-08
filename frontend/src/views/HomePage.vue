@@ -91,7 +91,6 @@
       </div>
     </div>
 
-    <!-- Модальное окно с подробным описанием -->
     <div
       v-if="showDetailsModal"
       class="modal"

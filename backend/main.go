@@ -12,7 +12,6 @@ import (
 )
 
 func main() {
-    // Инициализация базы данных с повторными попытками
     for i := 0; i < 30; i++ {
         err := database.InitDB()
         if err == nil {
@@ -25,7 +24,6 @@ func main() {
     
     r := gin.Default()
     
-    // CORS настройки
     r.Use(cors.New(cors.Config{
         AllowOrigins:     []string{"http://localhost:3000"},
         AllowMethods:     []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
@@ -34,21 +32,17 @@ func main() {
         AllowCredentials: true,
     }))
     
-    // Публичные маршруты
     r.POST("/api/register", handlers.Register)
     r.POST("/api/login", handlers.Login)
     r.GET("/api/consoles", handlers.GetConsoles)
     r.GET("/api/consoles/:id", handlers.GetConsoleByID)
     
-    // Защищенные маршруты
     auth := r.Group("/api")
     auth.Use(middleware.AuthMiddleware())
     {
-        // Профиль
         auth.GET("/user/profile", handlers.GetUserProfile)
         auth.PUT("/user/profile", handlers.UpdateUserProfile)
         
-        // Аренды
         auth.POST("/rentals", handlers.CreateRental)
         auth.GET("/my-rentals", handlers.GetUserRentals)
         auth.PUT("/rentals/:id/return", handlers.ReturnConsole)

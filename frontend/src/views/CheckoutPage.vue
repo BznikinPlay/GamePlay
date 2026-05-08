@@ -1,7 +1,6 @@
 <template>
   <div class="checkout-page">
     <div class="checkout-container">
-      <!-- Шаги оформления -->
       <div class="checkout-steps">
         <div class="step" :class="{ active: currentStep >= 1 }">
           <div class="step-number">1</div>
@@ -17,7 +16,6 @@
         </div>
       </div>
 
-      <!-- Шаг 1: Выбор консоли (показываем только если консоль не выбрана изначально) -->
       <div v-if="currentStep === 1 && !preselectedConsole" class="step-content">
         <h2>Выберите консоль для аренды</h2>
         <div class="consoles-grid">
@@ -50,7 +48,6 @@
         </button>
       </div>
 
-      <!-- Если консоль предвыбрана, показываем информацию о ней и сразу переходим к шагу 2 -->
       <div v-if="preselectedConsole && currentStep === 1" class="step-content">
         <div class="preselected-info">
           <h2>Вы выбрали:</h2>
@@ -73,7 +70,6 @@
         </div>
       </div>
 
-      <!-- Шаг 2: Данные аренды -->
       <div v-if="currentStep === 2" class="step-content">
         <h2>Данные аренды</h2>
 
@@ -155,7 +151,6 @@
         </form>
       </div>
 
-      <!-- Шаг 3: Подтверждение -->
       <div v-if="currentStep === 3" class="step-content">
         <h2>Подтверждение заказа</h2>
 
@@ -278,7 +273,6 @@ export default {
         const response = await axios.get("/api/consoles");
         consoles.value = response.data;
 
-        // Проверяем, есть ли ID консоли в URL
         const consoleId = route.params.id;
         if (consoleId) {
           const foundConsole = consoles.value.find(
@@ -368,7 +362,6 @@ export default {
       event.target.src = "https://via.placeholder.com/200x150?text=Console";
     };
 
-    // Устанавливаем даты по умолчанию
     const setDefaultDates = () => {
       const today = new Date();
       const tomorrow = new Date(today);

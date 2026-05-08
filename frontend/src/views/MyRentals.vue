@@ -77,29 +77,46 @@
 </template>
 
 <script>
-import { ref, onMounted } from "vue";
+import { ref, onMounted, onBeforeUnmount } from "vue";
+import { useRouter } from "vue-router";
 import axios from "axios";
 
 export default {
   name: "MyRentals",
   setup() {
+    const router = useRouter();
     const rentals = ref([]);
     const loading = ref(true);
+    let isComponentMounted = true;
 
     const fetchRentals = async () => {
+      // Проверяем наличие токена
+      const token = localStorage.getItem("auth_token");
+      if (!token) {
+        router.push("/");
+        return;
+      }
+
       loading.value = true;
       try {
         const response = await axios.get("/api/my-rentals");
-        // Убеждаемся, что response.data - это массив
-        rentals.value = Array.isArray(response.data) ? response.data : [];
+        if (isComponentMounted) {
+          rentals.value = Array.isArray(response.data) ? response.data : [];
+        }
       } catch (error) {
         console.error("Error fetching rentals:", error);
         if (error.response?.status === 401) {
-          alert("Пожалуйста, войдите в систему");
+          // Если не авторизован, перенаправляем на главную
+          localStorage.removeItem("auth_token");
+          router.push("/");
         }
-        rentals.value = []; // Устанавливаем пустой массив в случае ошибки
+        if (isComponentMounted) {
+          rentals.value = [];
+        }
       } finally {
-        loading.value = false;
+        if (isComponentMounted) {
+          loading.value = false;
+        }
       }
     };
 
@@ -111,7 +128,12 @@ export default {
           await fetchRentals();
         } catch (error) {
           console.error("Error returning console:", error);
-          alert("Ошибка при возврате");
+          if (error.response?.status === 401) {
+            localStorage.removeItem("auth_token");
+            router.push("/");
+          } else {
+            alert("Ошибка при возврате");
+          }
         }
       }
     };
@@ -159,7 +181,12 @@ export default {
     };
 
     onMounted(() => {
+      isComponentMounted = true;
       fetchRentals();
+    });
+
+    onBeforeUnmount(() => {
+      isComponentMounted = false;
     });
 
     return {
@@ -175,7 +202,6 @@ export default {
   },
 };
 </script>
-
 <style scoped>
 .rentals-page {
   max-width: 900px;

@@ -22,7 +22,6 @@ func Register(c *gin.Context) {
         return
     }
     
-    // Проверка существования пользователя
     var exists bool
     err := database.DB.QueryRow("SELECT EXISTS(SELECT 1 FROM users WHERE email = $1)", req.Email).Scan(&exists)
     if err == nil && exists {
@@ -47,7 +46,6 @@ func Register(c *gin.Context) {
         return
     }
     
-    // Генерация JWT токена
     token, err := generateToken(userID, req.Username, req.Email)
     if err != nil {
         c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to generate token"})
@@ -95,7 +93,6 @@ func Login(c *gin.Context) {
         return
     }
     
-    // Генерация JWT токена
     token, err := generateToken(user.ID, user.Username, user.Email)
     if err != nil {
         c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to generate token"})
@@ -154,7 +151,6 @@ func GetUserProfile(c *gin.Context) {
     })
 }
 
-// UpdateUserProfile - обновление профиля пользователя
 func UpdateUserProfile(c *gin.Context) {
     userID := middleware.GetUserID(c)
     if userID == 0 {
@@ -174,7 +170,6 @@ func UpdateUserProfile(c *gin.Context) {
         return
     }
     
-    // Проверяем текущий пароль
     var hashedPassword string
     err := database.DB.QueryRow("SELECT password FROM users WHERE id = $1", userID).Scan(&hashedPassword)
     if err != nil {
@@ -188,7 +183,6 @@ func UpdateUserProfile(c *gin.Context) {
         return
     }
     
-    // Начинаем транзакцию
     tx, err := database.DB.Begin()
     if err != nil {
         c.JSON(http.StatusInternalServerError, gin.H{"error": "Database error"})
@@ -196,7 +190,6 @@ func UpdateUserProfile(c *gin.Context) {
     }
     defer tx.Rollback()
     
-    // Обновляем username если указан
     if req.Username != "" {
         _, err = tx.Exec("UPDATE users SET username = $1 WHERE id = $2", req.Username, userID)
         if err != nil {
@@ -205,9 +198,7 @@ func UpdateUserProfile(c *gin.Context) {
         }
     }
     
-    // Обновляем email если указан
     if req.Email != "" {
-        // Проверяем уникальность email
         var exists bool
         tx.QueryRow("SELECT EXISTS(SELECT 1 FROM users WHERE email = $1 AND id != $2)", req.Email, userID).Scan(&exists)
         if exists {
@@ -241,7 +232,6 @@ func UpdateUserProfile(c *gin.Context) {
         }
     }
     
-    // Получаем обновлённые данные
     var username, email string
     err = tx.QueryRow("SELECT username, email FROM users WHERE id = $1", userID).Scan(&username, &email)
     if err != nil {
@@ -255,7 +245,6 @@ func UpdateUserProfile(c *gin.Context) {
         return
     }
     
-    // Генерируем новый токен
     token, err := generateToken(userID, username, email)
     if err != nil {
         c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to generate new token"})

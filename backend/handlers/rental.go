@@ -24,7 +24,6 @@ func CreateRental(c *gin.Context) {
     log.Printf("Rental request: console_id=%d, start=%s, end=%s, address=%s, phone=%s", 
         req.ConsoleID, req.StartDate, req.EndDate, req.DeliveryAddress, req.Phone)
     
-    // Получаем user_id из контекста
     userID := middleware.GetUserID(c)
     if userID == 0 {
         c.JSON(http.StatusUnauthorized, gin.H{"error": "Unauthorized - please login"})
@@ -33,7 +32,6 @@ func CreateRental(c *gin.Context) {
     
     log.Printf("User ID: %d", userID)
     
-    // Парсим даты
     startDate, err := time.Parse(time.RFC3339, req.StartDate)
     if err != nil {
         log.Printf("Error parsing start date: %v", err)
@@ -50,7 +48,6 @@ func CreateRental(c *gin.Context) {
     
     log.Printf("Parsed dates: start=%v, end=%v", startDate, endDate)
     
-    // Проверяем существование консоли
     var pricePerDay float64
     var isAvailable bool
     var consoleType string
@@ -66,13 +63,11 @@ func CreateRental(c *gin.Context) {
         return
     }
     
-    // Проверяем даты
     if endDate.Before(startDate) {
         c.JSON(http.StatusBadRequest, gin.H{"error": "End date cannot be before start date"})
         return
     }
     
-    // Вычисляем количество дней
     days := endDate.Sub(startDate).Hours() / 24
     if days < 1 {
         days = 1
@@ -81,7 +76,6 @@ func CreateRental(c *gin.Context) {
     
     log.Printf("Calculated: %.2f * %.0f = %.2f", pricePerDay, days, totalPrice)
     
-    // Формируем строку с адресом и телефоном
     deliveryInfo := req.DeliveryAddress
     if req.Phone != "" {
         deliveryInfo += " | Телефон: " + req.Phone
@@ -90,7 +84,6 @@ func CreateRental(c *gin.Context) {
         deliveryInfo += " | Комментарий: " + req.Comment
     }
     
-    // Начинаем транзакцию
     tx, err := database.DB.Begin()
     if err != nil {
         log.Printf("Transaction begin error: %v", err)
@@ -201,7 +194,6 @@ func ReturnConsole(c *gin.Context) {
         return
     }
     
-    // Проверяем, что аренда принадлежит пользователю
     var dbUserID int
     var consoleID int
     var status string

@@ -7,7 +7,6 @@
           <span class="logo-text">ConsoleRent</span>
         </div>
 
-        <!-- Десктопное меню -->
         <div class="nav-links desktop-menu">
           <router-link to="/">Главная</router-link>
           <router-link v-if="isLoggedIn" to="/rentals">Мои аренды</router-link>
@@ -26,13 +25,11 @@
           </div>
         </div>
 
-        <!-- Мобильное меню -->
         <div class="mobile-menu">
           <button class="menu-btn" @click="toggleMobileMenu">☰</button>
         </div>
       </div>
 
-      <!-- Мобильное выпадающее меню -->
       <div v-if="mobileMenuOpen" class="mobile-nav">
         <router-link to="/" @click="mobileMenuOpen = false"
           >Главная</router-link
@@ -79,7 +76,6 @@
 
     <router-view @auth-required="showAuthModal = true" />
 
-    <!-- Модальное окно авторизации -->
     <div v-if="showAuthModal" class="modal" @click.self="showAuthModal = false">
       <div class="modal-content auth-modal">
         <button class="modal-close" @click="showAuthModal = false">✕</button>
@@ -99,7 +95,6 @@
           </button>
         </div>
 
-        <!-- Форма входа -->
         <form v-if="authMode === 'login'" @submit.prevent="login">
           <input
             v-model="loginForm.email"
@@ -120,7 +115,6 @@
           </button>
         </form>
 
-        <!-- Форма регистрации -->
         <form v-if="authMode === 'register'" @submit.prevent="register">
           <input
             v-model="registerForm.username"
@@ -207,9 +201,17 @@ export default {
       axios.interceptors.response.use(
         (response) => response,
         (error) => {
+          // Не обрабатываем ошибки перенаправления, если мы уже на странице входа
           if (error.response && error.response.status === 401) {
-            logout();
-            showAuthModal.value = true;
+            const currentPath = router.currentRoute.value.path;
+            // Не перенаправляем при выходе, просто сбрасываем состояние
+            if (currentPath !== "/") {
+              localStorage.removeItem("auth_token");
+              delete axios.defaults.headers.common["Authorization"];
+              isLoggedIn.value = false;
+              currentUser.value = null;
+              router.push("/");
+            }
           }
           return Promise.reject(error);
         },
@@ -246,7 +248,8 @@ export default {
         isLoggedIn.value = true;
         showAuthModal.value = false;
         loginForm.value = { email: "", password: "" };
-        window.location.reload();
+        // Просто обновляем состояние, без перезагрузки страницы
+        window.location.href = "/";
       } catch (error) {
         alert(error.response?.data?.error || "Ошибка входа");
       } finally {
@@ -263,7 +266,7 @@ export default {
         isLoggedIn.value = true;
         showAuthModal.value = false;
         registerForm.value = { username: "", email: "", password: "" };
-        window.location.reload();
+        window.location.href = "/";
       } catch (error) {
         alert(error.response?.data?.error || "Ошибка регистрации");
       } finally {
@@ -272,11 +275,23 @@ export default {
     };
 
     const logout = () => {
+      // Очищаем токен
       localStorage.removeItem("auth_token");
       delete axios.defaults.headers.common["Authorization"];
+
+      // Сбрасываем состояние
       isLoggedIn.value = false;
       currentUser.value = null;
-      window.location.reload();
+
+      // Перенаправляем на главную без перезагрузки страницы
+      if (router.currentRoute.value.path !== "/") {
+        router.push("/").then(() => {
+          // Принудительно перезагружаем страницу, чтобы очистить все состояния
+          window.location.href = "/";
+        });
+      } else {
+        window.location.reload();
+      }
     };
 
     onMounted(() => {
@@ -303,7 +318,6 @@ export default {
   },
 };
 </script>
-
 <style scoped>
 .navbar {
   background: white;

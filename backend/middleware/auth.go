@@ -20,7 +20,6 @@ func AuthMiddleware() gin.HandlerFunc {
             return
         }
         
-        // Извлечение токена из заголовка "Bearer <token>"
         parts := strings.SplitN(authHeader, " ", 2)
         if len(parts) != 2 || parts[0] != "Bearer" {
             c.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid authorization header format"})
@@ -32,7 +31,6 @@ func AuthMiddleware() gin.HandlerFunc {
         claims := &models.Claims{}
         
         token, err := jwt.ParseWithClaims(tokenString, claims, func(token *jwt.Token) (interface{}, error) {
-            // Проверяем метод подписи
             if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
                 return nil, jwt.ErrSignatureInvalid
             }
@@ -51,7 +49,6 @@ func AuthMiddleware() gin.HandlerFunc {
             return
         }
         
-        // Сохраняем информацию о пользователе в контексте
         c.Set("user_id", claims.UserID)
         c.Set("username", claims.Username)
         c.Set("email", claims.Email)
@@ -60,7 +57,6 @@ func AuthMiddleware() gin.HandlerFunc {
     }
 }
 
-// Вспомогательная функция для получения user_id из контекста
 func GetUserID(c *gin.Context) int {
     userID, exists := c.Get("user_id")
     if !exists {

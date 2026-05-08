@@ -10,7 +10,6 @@
       </div>
 
       <div class="profile-content">
-        <!-- Информация о пользователе -->
         <div class="info-card">
           <div class="card-header">
             <h3>📋 Информация об аккаунте</h3>
@@ -42,7 +41,6 @@
           </div>
         </div>
 
-        <!-- Статистика -->
         <div class="stats-card">
           <h3>📊 Моя статистика</h3>
           <div class="stats-grid">
@@ -61,7 +59,6 @@
           </div>
         </div>
 
-        <!-- Форма изменения данных -->
         <div class="edit-card">
           <h3>✏️ Редактирование профиля</h3>
 
@@ -127,7 +124,6 @@
           </form>
         </div>
 
-        <!-- Предупреждение о безопасности -->
         <div class="security-note">
           <div class="note-icon">🔒</div>
           <div class="note-text">
@@ -141,7 +137,7 @@
 </template>
 
 <script>
-import { ref, onMounted, computed } from "vue";
+import { ref, onMounted, onBeforeUnmount } from "vue";
 import { useRouter } from "vue-router";
 import axios from "axios";
 
@@ -150,6 +146,7 @@ export default {
   setup() {
     const router = useRouter();
     const loading = ref(false);
+    const loadingProfile = ref(true);
     const userInfo = ref({
       id: null,
       username: "",
@@ -157,6 +154,7 @@ export default {
       created_at: "",
     });
     const rentals = ref([]);
+    let isComponentMounted = true;
 
     const editForm = ref({
       username: "",
@@ -166,39 +164,29 @@ export default {
       confirm_password: "",
     });
 
-    const rentalsCount = computed(() => rentals.value.length);
-    const activeRentalsCount = computed(
-      () => rentals.value.filter((r) => r.status === "active").length,
-    );
-    const totalSpent = computed(() => {
-      return rentals.value.reduce((sum, rental) => sum + rental.total_price, 0);
-    });
+    const rentalsCount = ref(0);
+    const activeRentalsCount = ref(0);
+    const totalSpent = ref(0);
 
     // Загрузка данных пользователя
     const fetchUserInfo = async () => {
-      try {
-        // Декодируем токен для получения информации
-        const token = localStorage.getItem("auth_token");
-        if (token) {
-          const payload = JSON.parse(atob(token.split(".")[1]));
-          userInfo.value = {
-            id: payload.user_id,
-            username: payload.username,
-            email: payload.email,
-            created_at: new Date().toISOString(), // Временно, пока нет API
-          };
-          editForm.value.username = payload.username;
-          editForm.value.email = payload.email;
-        }
+      const token = localStorage.getItem("auth_token");
+      if (!token) {
+        router.push("/");
+        return;
+      }
 
-        // В реальном приложении нужно сделать API запрос
-        // const response = await axios.get('/api/user/profile')
-        // userInfo.value = response.data
-        // editForm.value.username = response.data.username
-        // editForm.value.email = response.data.email
+      try {
+        const response = await axios.get("/api/user/profile");
+        if (isComponentMounted) {
+          userInfo.value = response.data;
+          editForm.value.username = response.data.username;
+          editForm.value.email = response.data.email;
+        }
       } catch (error) {
         console.error("Error fetching user info:", error);
         if (error.response?.status === 401) {
+          localStorage.removeItem("auth_token");
           router.push("/");
         }
       }
@@ -208,10 +196,27 @@ export default {
     const fetchUserRentals = async () => {
       try {
         const response = await axios.get("/api/my-rentals");
-        rentals.value = Array.isArray(response.data) ? response.data : [];
+        if (isComponentMounted) {
+          const userRentals = Array.isArray(response.data) ? response.data : [];
+          rentals.value = userRentals;
+          rentalsCount.value = userRentals.length;
+          activeRentalsCount.value = userRentals.filter(
+            (r) => r.status === "active",
+          ).length;
+          totalSpent.value = userRentals.reduce(
+            (sum, rental) => sum + (rental.total_price || 0),
+            0,
+          );
+        }
       } catch (error) {
         console.error("Error fetching rentals:", error);
-        rentals.value = [];
+        if (isComponentMounted) {
+          rentals.value = [];
+        }
+      } finally {
+        if (isComponentMounted) {
+          loadingProfile.value = false;
+        }
       }
     };
 
@@ -243,32 +248,34 @@ export default {
           new_password: editForm.value.new_password || undefined,
         };
 
-        // Отправляем запрос на обновление
         const response = await axios.put("/api/user/profile", updateData);
 
         if (response.data.token) {
-          // Обновляем токен в localStorage
           localStorage.setItem("auth_token", response.data.token);
         }
 
         alert("Профиль успешно обновлён!");
 
-        // Обновляем информацию
         await fetchUserInfo();
+        await fetchUserRentals();
 
-        // Очищаем поля паролей
         editForm.value.current_password = "";
         editForm.value.new_password = "";
         editForm.value.confirm_password = "";
       } catch (error) {
         console.error("Error updating profile:", error);
-        alert(error.response?.data?.error || "Ошибка при обновлении профиля");
+        if (error.response?.status === 401) {
+          alert("Сессия истекла. Пожалуйста, войдите заново.");
+          localStorage.removeItem("auth_token");
+          router.push("/");
+        } else {
+          alert(error.response?.data?.error || "Ошибка при обновлении профиля");
+        }
       } finally {
         loading.value = false;
       }
     };
 
-    // Сброс формы
     const resetForm = () => {
       editForm.value.username = userInfo.value.username;
       editForm.value.email = userInfo.value.email;
@@ -291,8 +298,13 @@ export default {
     };
 
     onMounted(() => {
+      isComponentMounted = true;
       fetchUserInfo();
       fetchUserRentals();
+    });
+
+    onBeforeUnmount(() => {
+      isComponentMounted = false;
     });
 
     return {
@@ -300,6 +312,7 @@ export default {
       rentals,
       editForm,
       loading,
+      loadingProfile,
       rentalsCount,
       activeRentalsCount,
       totalSpent,
@@ -310,7 +323,6 @@ export default {
   },
 };
 </script>
-
 <style scoped>
 .profile-page {
   min-height: 100vh;

@@ -56,7 +56,6 @@ type RentalRequest struct {
     Comment         string `json:"comment"`
 }
 
-// JWT Claims
 type Claims struct {
     UserID   int    `json:"user_id"`
     Username string `json:"username"`
