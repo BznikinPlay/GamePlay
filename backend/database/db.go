@@ -12,22 +12,49 @@ import (
 var DB *sql.DB
 
 func InitDB() error {
+    // Приоритет у переменных Railway
     host := os.Getenv("DB_HOST")
     port := os.Getenv("DB_PORT")
     user := os.Getenv("DB_USER")
     password := os.Getenv("DB_PASSWORD")
     dbname := os.Getenv("DB_NAME")
     
+    // Если переменные Railway не заданы, используем локальные
     if host == "" {
-        host = "localhost"
-        port = "5432"
-        user = "rental_user"
-        password = "rental_pass"
-        dbname = "console_rental"
+        host = os.Getenv("PGHOST")
+        if host == "" {
+            host = "localhost"
+        }
+    }
+    if port == "" {
+        port = os.Getenv("PGPORT")
+        if port == "" {
+            port = "5432"
+        }
+    }
+    if user == "" {
+        user = os.Getenv("PGUSER")
+        if user == "" {
+            user = "rental_user"
+        }
+    }
+    if password == "" {
+        password = os.Getenv("PGPASSWORD")
+        if password == "" {
+            password = "rental_pass"
+        }
+    }
+    if dbname == "" {
+        dbname = os.Getenv("PGDATABASE")
+        if dbname == "" {
+            dbname = "console_rental"
+        }
     }
     
-    connStr := fmt.Sprintf("host=%s port=%s user=%s password=%s dbname=%s sslmode=disable",
+    connStr := fmt.Sprintf("host=%s port=%s user=%s password=%s dbname=%s sslmode=require",
         host, port, user, password, dbname)
+    
+    log.Printf("Connecting to database with connection string: host=%s port=%s dbname=%s", host, port, dbname)
     
     var err error
     DB, err = sql.Open("postgres", connStr)
@@ -79,7 +106,7 @@ func createTables() {
     for _, query := range queries {
         _, err := DB.Exec(query)
         if err != nil {
-            log.Fatal("Error creating table:", err)
+            log.Printf("Error creating table: %v", err)
         }
     }
 }
@@ -113,6 +140,6 @@ func insertSampleData() {
                 log.Println("Error inserting console:", err)
             }
         }
-        log.Println("Sample data inserted successfully")
+        log.Println("Sample consoles inserted successfully")
     }
 }
